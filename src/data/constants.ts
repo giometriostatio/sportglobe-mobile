@@ -4,12 +4,16 @@ export const SPORT_COLORS: Record<Sport, string> = {
   basketball: '#F97316',
   college_basketball: '#10B981',
   baseball: '#A855F7',
+  hockey: '#06B6D4',
+  college_hockey: '#3B82F6',
 };
 
 export const SPORT_ICONS: Record<Sport, string> = {
   basketball: '🏀',
   college_basketball: '🎓',
   baseball: '⚾',
+  hockey: '🏒',
+  college_hockey: '🏒',
 };
 
 export const FILTERS: FilterOption[] = [
@@ -17,6 +21,8 @@ export const FILTERS: FilterOption[] = [
   { key: 'basketball', label: 'Basketball', icon: '🏀' },
   { key: 'college_basketball', label: 'College BB', icon: '🎓' },
   { key: 'baseball', label: 'Baseball', icon: '⚾' },
+  { key: 'hockey', label: 'Hockey', icon: '🏒' },
+  { key: 'college_hockey', label: 'College HK', icon: '🎓' },
 ];
 
 export const REGIONS = [

@@ -1,4 +1,4 @@
-export type Sport = 'basketball' | 'college_basketball' | 'baseball';
+export type Sport = 'basketball' | 'college_basketball' | 'baseball' | 'hockey' | 'college_hockey';
 
 export type GameStatus = 'UPCOMING';
 

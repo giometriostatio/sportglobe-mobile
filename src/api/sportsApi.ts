@@ -183,21 +183,97 @@ function parseESPNCollegeBasketball(events: any[], targetDate?: string): Game[] 
     .filter(Boolean) as Game[];
 }
 
+// ——— ESPN Hockey Parser ———
+
+function parseESPNHockey(events: any[], sportType: 'hockey' | 'college_hockey', targetDate?: string): Game[] {
+  const league = sportType === 'hockey' ? 'NHL' : 'NCAA';
+  const idOffset = sportType === 'hockey' ? 300000 : 400000;
+
+  return events
+    .map(event => {
+      const comp = event.competitions?.[0];
+      if (!comp) return null;
+
+      // Only include scheduled games
+      const statusName: string = event.status?.type?.name || comp.status?.type?.name || '';
+      if (statusName !== 'STATUS_SCHEDULED') return null;
+
+      // Extract teams
+      const competitors = comp.competitors || [];
+      const homeTeam = competitors.find((c: any) => c.homeAway === 'home');
+      const awayTeam = competitors.find((c: any) => c.homeAway === 'away');
+      const homeName = homeTeam?.team?.displayName || '?';
+      const awayName = awayTeam?.team?.displayName || '?';
+
+      // Extract venue info
+      const venueName: string = comp.venue?.fullName || '';
+      const venueCity: string = comp.venue?.address?.city || '';
+      const venueState: string = comp.venue?.address?.state || '';
+
+      // Convert time
+      const utcTime: string = event.date || '';
+      const { dateET, timeET } = convertToEastern(utcTime);
+
+      if (targetDate && dateET !== targetDate) return null;
+
+      // Determine country
+      let country = 'USA';
+      if (sportType === 'hockey') {
+        const venueAddress: string = comp.venue?.address?.country || '';
+        if (venueAddress.toLowerCase().includes('canada') || venueState === 'AB' || venueState === 'BC' || venueState === 'MB' || venueState === 'ON' || venueState === 'QC') {
+          country = 'Canada';
+        }
+      }
+
+      // Geocode
+      const coords = sportType === 'college_hockey'
+        ? (geocodeCityState(venueCity, venueState) || geocode(venueName || null, venueCity || null, 'USA', homeName))
+        : geocode(venueName || null, venueCity || null, country, homeName);
+      if (!coords) return null;
+
+      // ESPN event IDs are strings like "401720123"
+      const eventId = parseInt(event.id, 10) || 0;
+
+      return {
+        id: eventId + idOffset,
+        sport: sportType as Sport,
+        league,
+        home: homeName,
+        away: awayName,
+        venue: venueName,
+        city: venueCity,
+        country,
+        lat: coords[0],
+        lng: coords[1],
+        status: 'UPCOMING' as const,
+        detail: 'Scheduled',
+        startTime: timeET,
+        color: SPORT_COLORS[sportType],
+        dateUTC: utcTime,
+      } as Game;
+    })
+    .filter(Boolean) as Game[];
+}
+
 // ——— Public API ———
 
 export async function fetchAllGames(date?: string): Promise<Game[]> {
   const today = new Date().toISOString().split('T')[0];
   const targetDate = date || today;
 
-  const [nbaRaw, mlbRaw, cbbRaw] = await Promise.all([
+  const [nbaRaw, mlbRaw, cbbRaw, nhlRaw, ncaahRaw] = await Promise.all([
     fetchSport('bdl_nba', targetDate),
     fetchSport('bdl_mlb', targetDate),
     fetchSport('espn_ncaab', targetDate),
+    fetchSport('espn_nhl', targetDate),
+    fetchSport('espn_ncaah', targetDate),
   ]);
 
   const nbaGames = parseBDLBasketball(nbaRaw, targetDate);
   const mlbGames = parseBDLBaseball(mlbRaw, targetDate);
   const cbbGames = parseESPNCollegeBasketball(cbbRaw, targetDate);
+  const nhlGames = parseESPNHockey(nhlRaw, 'hockey', targetDate);
+  const ncaahGames = parseESPNHockey(ncaahRaw, 'college_hockey', targetDate);
 
-  return [...nbaGames, ...mlbGames, ...cbbGames];
+  return [...nbaGames, ...mlbGames, ...cbbGames, ...nhlGames, ...ncaahGames];
 }
