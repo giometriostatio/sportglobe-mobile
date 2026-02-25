@@ -8,6 +8,7 @@ import { SportFilters } from '../components/SportFilters';
 import { DatePicker } from '../components/DatePicker';
 import { GameDetailModal } from './GameDetailModal';
 import { TripSummaryModal } from './TripSummaryModal';
+import { AboutModal } from './AboutModal';
 import { Game } from '../types';
 import { REGIONS } from '../data/constants';
 
@@ -40,6 +41,7 @@ export function MapScreen() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [tripModalVisible, setTripModalVisible] = useState(false);
+  const [aboutModalVisible, setAboutModalVisible] = useState(false);
 
   const handleMarkerPress = useCallback((game: Game) => {
     setSelectedGame(game);
@@ -100,14 +102,23 @@ export function MapScreen() {
             <Text style={styles.subtitle}>TRIP PLANNER</Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.tripBadge}
-          onPress={() => setTripModalVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.tripBadgeIcon}>⭐</Text>
-          <Text style={styles.tripBadgeCount}>{tripCount}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.infoBtn}
+            onPress={() => setAboutModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.infoBtnText}>ⓘ</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.tripBadge}
+            onPress={() => setTripModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.tripBadgeIcon}>⭐</Text>
+            <Text style={styles.tripBadgeCount}>{tripCount}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tagline */}
@@ -195,6 +206,19 @@ export function MapScreen() {
         onRemoveFromTrip={removeFromTrip}
         onClearTrip={clearTrip}
       />
+
+      {/* About Modal */}
+      <AboutModal
+        visible={aboutModalVisible}
+        onClose={() => setAboutModalVisible(false)}
+      />
+
+      {/* Disclaimer Footer */}
+      <View style={[styles.disclaimerFooter, { paddingBottom: insets.bottom + 4 }]} pointerEvents="none">
+        <Text style={styles.disclaimerText}>
+          SportGlobe is not affiliated with any professional sports league or team. For informational use only.
+        </Text>
+      </View>
     </View>
   );
 }
@@ -340,5 +364,40 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: 11,
     fontFamily: 'monospace',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoBtnText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  disclaimerFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  disclaimerText: {
+    color: 'rgba(255,255,255,0.25)',
+    fontSize: 9,
+    fontFamily: 'monospace',
+    textAlign: 'center',
   },
 });
