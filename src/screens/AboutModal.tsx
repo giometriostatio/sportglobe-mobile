@@ -24,7 +24,7 @@ export function AboutModal({ visible, onClose }: Props) {
         <View style={styles.header}>
           <Text style={styles.icon}>🌍</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>SportGlobe</Text>
+            <Text style={styles.title}>Sport Trippin</Text>
             <Text style={styles.label}>ABOUT & LEGAL</Text>
           </View>
         </View>
@@ -33,7 +33,7 @@ export function AboutModal({ visible, onClose }: Props) {
           <Text style={styles.sectionTitle}>DISCLAIMER</Text>
 
           <Text style={styles.body}>
-            SportGlobe is an independent application and is not affiliated with, endorsed by,
+            Sport Trippin is an independent application and is not affiliated with, endorsed by,
             sponsored by, or in any way officially connected with the National Basketball
             Association (NBA), National Football League (NFL), National Hockey League (NHL),
             Major League Baseball (MLB), National Collegiate Athletic Association (NCAA), or
@@ -50,7 +50,7 @@ export function AboutModal({ visible, onClose }: Props) {
           <Text style={styles.body}>
             Game schedules, scores, and location data are provided by third-party data sources
             for informational purposes only and may not be fully accurate or up to date.
-            SportGlobe makes no guarantees regarding the accuracy, completeness, or reliability
+            Sport Trippin makes no guarantees regarding the accuracy, completeness, or reliability
             of any data displayed.
           </Text>
 
@@ -65,7 +65,7 @@ export function AboutModal({ visible, onClose }: Props) {
             Map data © OpenStreetMap contributors. Map powered by Leaflet.
           </Text>
 
-          <Text style={styles.copyright}>© 2026 SportGlobe. All rights reserved.</Text>
+          <Text style={styles.copyright}>© 2026 Sport Trippin. All rights reserved.</Text>
         </ScrollView>
       </View>
     </Modal>

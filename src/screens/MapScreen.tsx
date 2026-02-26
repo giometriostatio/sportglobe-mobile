@@ -98,7 +98,7 @@ export function MapScreen() {
         <View style={styles.logoRow}>
           <Text style={styles.globe}>🌍</Text>
           <View>
-            <Text style={styles.title}>SportGlobe</Text>
+            <Text style={styles.title}>Sport Trippin</Text>
             <Text style={styles.subtitle}>TRIP PLANNER</Text>
           </View>
         </View>
@@ -216,7 +216,7 @@ export function MapScreen() {
       {/* Disclaimer Footer */}
       <View style={[styles.disclaimerFooter, { paddingBottom: insets.bottom + 4 }]} pointerEvents="none">
         <Text style={styles.disclaimerText}>
-          SportGlobe is not affiliated with any professional sports league or team. For informational use only.
+          Sport Trippin is not affiliated with any professional sports league or team. For informational use only.
         </Text>
       </View>
     </View>

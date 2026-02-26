@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SportGlobe",
-    "slug": "sportglobe-mobile",
+    "name": "Sport Trippin",
+    "slug": "sport-trippin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,12 +14,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sportglobe.mobile",
+      "bundleIdentifier": "com.sporttrippin.app",
       "config": {
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "SportGlobe uses your location to show nearby live games."
+        "NSLocationWhenInUseUsageDescription": "Sport Trippin uses your location to show nearby live games."
       }
     },
     "android": {
@@ -28,8 +28,11 @@
         "backgroundColor": "#06060f"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.sportglobe.mobile",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "package": "com.sporttrippin.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SportGlobe uses your location to show nearby live games."
+          "locationWhenInUsePermission": "Sport Trippin uses your location to show nearby live games."
         }
       ]
     ]
