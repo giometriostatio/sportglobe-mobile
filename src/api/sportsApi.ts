@@ -55,12 +55,12 @@ async function fetchSport(sport: string, date?: string): Promise<any[]> {
 function parseBDLBasketball(games: any[], targetDateET?: string): Game[] {
   return games.map(g => {
     const statusStr: string = g.status || '';
-    const isScheduled = statusStr.includes('T') && statusStr.includes('Z');
+    const isScheduled = (statusStr.includes('T') && statusStr.includes('Z')) || statusStr === 'STATUS_SCHEDULED';
     const scorePlayed = (g.home_team_score > 0 || g.visitor_team_score > 0);
 
     if (!isScheduled && scorePlayed) return null;
 
-    const utcTime = isScheduled ? statusStr : `${g.date}T00:00:00Z`;
+    const utcTime = statusStr === 'STATUS_SCHEDULED' ? g.date : (isScheduled ? statusStr : `${g.date}T00:00:00Z`);
     const { dateET, timeET } = convertToEastern(utcTime);
 
     if (targetDateET && dateET !== targetDateET) return null;
@@ -91,12 +91,12 @@ function parseBDLBasketball(games: any[], targetDateET?: string): Game[] {
 function parseBDLBaseball(games: any[], targetDateET?: string): Game[] {
   return games.map(g => {
     const statusStr: string = g.status || '';
-    const isScheduled = statusStr.includes('T') && statusStr.includes('Z');
+    const isScheduled = (statusStr.includes('T') && statusStr.includes('Z')) || statusStr === 'STATUS_SCHEDULED';
     const scorePlayed = (g.home_team_score > 0 || g.visitor_team_score > 0);
 
     if (!isScheduled && scorePlayed) return null;
 
-    const utcTime = isScheduled ? statusStr : `${g.date}T00:00:00Z`;
+    const utcTime = statusStr === 'STATUS_SCHEDULED' ? g.date : (isScheduled ? statusStr : `${g.date}T00:00:00Z`);
     const { dateET, timeET } = convertToEastern(utcTime);
 
     if (targetDateET && dateET !== targetDateET) return null;
