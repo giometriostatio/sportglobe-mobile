@@ -309,6 +309,12 @@ const styles = StyleSheet.create({
     right: 0,
     marginTop: 159,
   },
+  filtersSidebar: {
+    position: 'absolute',
+    left: 8,
+    top: 160,
+    zIndex: 10,
+  },
   regionNav: {
     position: 'absolute',
     right: 12,
