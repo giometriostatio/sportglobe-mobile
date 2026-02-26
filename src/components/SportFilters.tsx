@@ -11,8 +11,7 @@ interface Props {
 export function SportFilters({ current, onChange }: Props) {
   return (
     <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
       {FILTERS.map(f => {
@@ -25,9 +24,6 @@ export function SportFilters({ current, onChange }: Props) {
             activeOpacity={0.7}
           >
             <Text style={styles.icon}>{f.icon}</Text>
-            {isActive && (
-              <Text style={styles.labelActive}>{f.label}</Text>
-            )}
           </TouchableOpacity>
         );
       })}
@@ -37,31 +33,25 @@ export function SportFilters({ current, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    gap: 5,
+    gap: 6,
     alignItems: 'center',
+    paddingVertical: 4,
   },
   btn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.07)',
     backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnActive: {
     borderColor: 'rgba(255,255,255,0.3)',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   icon: {
-    fontSize: 14,
-  },
-  labelActive: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 16,
   },
 });

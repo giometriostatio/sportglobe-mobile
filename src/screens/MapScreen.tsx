@@ -131,8 +131,8 @@ export function MapScreen() {
         <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
       </View>
 
-      {/* Filters */}
-      <View style={styles.filtersRow}>
+      {/* Sport Filters - Left Sidebar */}
+      <View style={styles.filtersSidebar}>
         <SportFilters current={filter} onChange={setFilter} />
       </View>
 
