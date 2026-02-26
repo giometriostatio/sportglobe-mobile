@@ -322,40 +322,46 @@ function parseESPNSoccer(events: any[], leagueLabel: string, targetDate?: string
     .filter(Boolean) as Game[];
 }
 
-// ——— ESPN Minor League Baseball Parser ———
+// ——— MLB Stats API Minor League Baseball Parser ———
 
-function parseESPNMiLB(events: any[], targetDate?: string): Game[] {
-  return events
-    .map(event => {
-      const comp = event.competitions?.[0];
-      if (!comp) return null;
+function parseMLBStatsMiLB(games: any[], targetDate?: string): Game[] {
+  return games
+    .map(game => {
+      // Skip non-scheduled games
+      const statusCode: string = game.status?.statusCode || '';
+      if (statusCode !== 'S' && statusCode !== 'PW') return null;
 
-      const statusName: string = event.status?.type?.name || comp.status?.type?.name || '';
-      if (statusName !== 'STATUS_SCHEDULED') return null;
+      const homeTeam = game.teams?.home?.team;
+      const awayTeam = game.teams?.away?.team;
+      const homeName = homeTeam?.name || '?';
+      const awayName = awayTeam?.name || '?';
 
-      const competitors = comp.competitors || [];
-      const homeTeam = competitors.find((c: any) => c.homeAway === 'home');
-      const awayTeam = competitors.find((c: any) => c.homeAway === 'away');
-      const homeName = homeTeam?.team?.displayName || '?';
-      const awayName = awayTeam?.team?.displayName || '?';
+      const venue = game.venue || {};
+      const venueName: string = venue.name || '';
+      const location = venue.location || {};
+      const venueCity: string = location.city || '';
+      const venueState: string = location.stateAbbrev || '';
 
-      const venueName: string = comp.venue?.fullName || '';
-      const venueCity: string = comp.venue?.address?.city || '';
-      const venueState: string = comp.venue?.address?.state || '';
+      // MLB Stats API provides coordinates directly
+      const lat = location.defaultCoordinates?.latitude;
+      const lng = location.defaultCoordinates?.longitude;
 
-      const utcTime: string = event.date || '';
+      // Fallback to geocoding if no coordinates
+      const coords: [number, number] | null = (lat && lng)
+        ? [lat, lng]
+        : geocodeCityState(venueCity, venueState)
+          || geocode(venueName || null, venueCity || null, 'USA', homeName);
+      if (!coords) return null;
+
+      const utcTime: string = game.gameDate || game.officialDate || '';
       const { dateET, timeET } = convertToEastern(utcTime);
 
       if (targetDate && dateET !== targetDate) return null;
 
-      const coords = geocodeCityState(venueCity, venueState)
-        || geocode(venueName || null, venueCity || null, 'USA', homeName);
-      if (!coords) return null;
-
-      const eventId = parseInt(event.id, 10) || 0;
+      const gameId = game.gamePk || 0;
 
       return {
-        id: eventId + 600000,
+        id: gameId,
         sport: 'milb' as Sport,
         league: 'MiLB AAA',
         home: homeName,
@@ -392,7 +398,7 @@ export async function fetchAllGames(date?: string): Promise<Game[]> {
     fetchSport('espn_epl', targetDate),
     fetchSport('espn_ucl', targetDate),
     fetchSport('espn_laliga', targetDate),
-    fetchSport('espn_milb', targetDate),
+    fetchSport('mlb_milb_aaa', targetDate),
   ]);
 
   const nbaGames = parseBDLBasketball(nbaRaw, targetDate);
@@ -405,7 +411,7 @@ export async function fetchAllGames(date?: string): Promise<Game[]> {
   const eplGames = parseESPNSoccer(eplRaw, 'EPL', targetDate);
   const uclGames = parseESPNSoccer(uclRaw, 'Champions League', targetDate);
   const laligaGames = parseESPNSoccer(laligaRaw, 'La Liga', targetDate);
-  const milbGames = parseESPNMiLB(milbRaw, targetDate);
+  const milbGames = parseMLBStatsMiLB(milbRaw, targetDate);
 
   return [...nbaGames, ...mlbGames, ...cbbGames, ...nhlGames, ...ncaahGames, ...fifaGames, ...mlsGames, ...eplGames, ...uclGames, ...laligaGames, ...milbGames];
 }
