@@ -247,6 +247,62 @@ export const US_STATE_CENTERS: Record<string, [number, number]> = {
  * Geocode using city name + US state abbreviation.
  * Checks CITY_COORDS first (lowercase city match), then falls back to state center.
  */
+// Dynamic geocoding cache (in-memory, survives for app session)
+const dynamicGeoCache: Record<string, [number, number] | null> = {};
+
+/**
+ * Geocode using city + state with remote Nominatim fallback.
+ * 1. Check CITY_COORDS statically
+ * 2. Check in-memory dynamicGeoCache
+ * 3. Fetch from backend geocode proxy
+ * 4. Fall back to US_STATE_CENTERS
+ */
+export async function geocodeCityStateDynamic(
+  city: string,
+  state: string,
+  apiBase: string,
+): Promise<[number, number] | null> {
+  if (!city && !state) return null;
+
+  // 1. Static city lookup
+  if (city) {
+    const cityLower = city.toLowerCase().trim();
+    if (CITY_COORDS[cityLower]) return CITY_COORDS[cityLower];
+  }
+
+  // 2. Check dynamic cache
+  const cacheKey = `${city}|${state}`.toLowerCase();
+  if (cacheKey in dynamicGeoCache) return dynamicGeoCache[cacheKey];
+
+  // 3. Fetch from backend proxy
+  try {
+    const params = new URLSearchParams({ sport: 'geocode' });
+    if (city) params.set('city', city);
+    if (state) params.set('state', state);
+    const resp = await fetch(`${apiBase}/api/sports?${params}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.lat != null && data.lng != null) {
+        const result: [number, number] = [data.lat, data.lng];
+        dynamicGeoCache[cacheKey] = result;
+        return result;
+      }
+    }
+  } catch {}
+
+  // 4. Fall back to state center
+  if (state) {
+    const stateUpper = state.toUpperCase().trim();
+    if (US_STATE_CENTERS[stateUpper]) {
+      dynamicGeoCache[cacheKey] = US_STATE_CENTERS[stateUpper];
+      return US_STATE_CENTERS[stateUpper];
+    }
+  }
+
+  dynamicGeoCache[cacheKey] = null;
+  return null;
+}
+
 export function geocodeCityState(city: string, state: string): [number, number] | null {
   if (!city && !state) return null;
 

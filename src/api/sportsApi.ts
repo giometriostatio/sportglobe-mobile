@@ -1,6 +1,6 @@
 import { Game, Sport } from '../types';
 import { SPORT_COLORS } from '../data/constants';
-import { geocode, geocodeCityState } from '../data/geocoding';
+import { geocode, geocodeCityState, geocodeCityStateDynamic } from '../data/geocoding';
 import { API_BASE_URL } from '../data/constants';
 
 // ——— Eastern Time conversion utility ———
@@ -126,9 +126,9 @@ function parseBDLBaseball(games: any[], targetDateET?: string): Game[] {
 
 // ——— ESPN College Basketball Parser ———
 
-function parseESPNCollegeBasketball(events: any[], targetDate?: string): Game[] {
-  return events
-    .map(event => {
+async function parseESPNCollegeBasketball(events: any[], targetDate?: string): Promise<Game[]> {
+  const results = await Promise.all(
+    events.map(async (event) => {
       const comp = event.competitions?.[0];
       if (!comp) return null;
 
@@ -155,7 +155,7 @@ function parseESPNCollegeBasketball(events: any[], targetDate?: string): Game[] 
       if (targetDate && dateET !== targetDate) return null;
 
       // Geocode using city + state (much more accurate than team name matching)
-      const coords = geocodeCityState(venueCity, venueState)
+      const coords = await geocodeCityStateDynamic(venueCity, venueState, API_BASE_URL)
         || geocode(venueName || null, venueCity || null, 'USA', homeName);
       if (!coords) return null;
 
@@ -179,18 +179,19 @@ function parseESPNCollegeBasketball(events: any[], targetDate?: string): Game[] 
         color: SPORT_COLORS.college_basketball,
         dateUTC: utcTime,
       } as Game;
-    })
-    .filter(Boolean) as Game[];
+    }),
+  );
+  return results.filter(Boolean) as Game[];
 }
 
 // ——— ESPN Hockey Parser ———
 
-function parseESPNHockey(events: any[], sportType: 'hockey' | 'college_hockey', targetDate?: string): Game[] {
+async function parseESPNHockey(events: any[], sportType: 'hockey' | 'college_hockey', targetDate?: string): Promise<Game[]> {
   const league = sportType === 'hockey' ? 'NHL' : 'NCAA';
   const idOffset = sportType === 'hockey' ? 300000 : 400000;
 
-  return events
-    .map(event => {
+  const results = await Promise.all(
+    events.map(async (event) => {
       const comp = event.competitions?.[0];
       if (!comp) return null;
 
@@ -227,7 +228,7 @@ function parseESPNHockey(events: any[], sportType: 'hockey' | 'college_hockey', 
 
       // Geocode
       const coords = sportType === 'college_hockey'
-        ? (geocodeCityState(venueCity, venueState) || geocode(venueName || null, venueCity || null, 'USA', homeName))
+        ? (await geocodeCityStateDynamic(venueCity, venueState, API_BASE_URL) || geocode(venueName || null, venueCity || null, 'USA', homeName))
         : geocode(venueName || null, venueCity || null, country, homeName);
       if (!coords) return null;
 
@@ -251,15 +252,16 @@ function parseESPNHockey(events: any[], sportType: 'hockey' | 'college_hockey', 
         color: SPORT_COLORS[sportType],
         dateUTC: utcTime,
       } as Game;
-    })
-    .filter(Boolean) as Game[];
+    }),
+  );
+  return results.filter(Boolean) as Game[];
 }
 
 // ——— ESPN Soccer Parser ———
 
-function parseESPNSoccer(events: any[], leagueLabel: string, targetDate?: string): Game[] {
-  return events
-    .map(event => {
+async function parseESPNSoccer(events: any[], leagueLabel: string, targetDate?: string): Promise<Game[]> {
+  const results = await Promise.all(
+    events.map(async (event) => {
       const comp = event.competitions?.[0];
       if (!comp) return null;
 
@@ -295,7 +297,7 @@ function parseESPNSoccer(events: any[], leagueLabel: string, targetDate?: string
         else if (!vc.includes('usa') && !vc.includes('united states')) country = venueCountry;
       }
 
-      const coords = geocodeCityState(venueCity, venueState)
+      const coords = await geocodeCityStateDynamic(venueCity, venueState, API_BASE_URL)
         || geocode(venueName || null, venueCity || null, country, homeName);
       if (!coords) return null;
 
@@ -318,8 +320,9 @@ function parseESPNSoccer(events: any[], leagueLabel: string, targetDate?: string
         color: SPORT_COLORS.soccer,
         dateUTC: utcTime,
       } as Game;
-    })
-    .filter(Boolean) as Game[];
+    }),
+  );
+  return results.filter(Boolean) as Game[];
 }
 
 // ——— MLB Stats API Minor League Baseball Parser ———
@@ -403,15 +406,18 @@ export async function fetchAllGames(date?: string): Promise<Game[]> {
 
   const nbaGames = parseBDLBasketball(nbaRaw, targetDate);
   const mlbGames = parseBDLBaseball(mlbRaw, targetDate);
-  const cbbGames = parseESPNCollegeBasketball(cbbRaw, targetDate);
-  const nhlGames = parseESPNHockey(nhlRaw, 'hockey', targetDate);
-  const ncaahGames = parseESPNHockey(ncaahRaw, 'college_hockey', targetDate);
-  const fifaGames = parseESPNSoccer(fifaRaw, 'FIFA World Cup', targetDate);
-  const mlsGames = parseESPNSoccer(mlsRaw, 'MLS', targetDate);
-  const eplGames = parseESPNSoccer(eplRaw, 'EPL', targetDate);
-  const uclGames = parseESPNSoccer(uclRaw, 'Champions League', targetDate);
-  const laligaGames = parseESPNSoccer(laligaRaw, 'La Liga', targetDate);
   const milbGames = parseMLBStatsMiLB(milbRaw, targetDate);
+
+  const [cbbGames, nhlGames, ncaahGames, fifaGames, mlsGames, eplGames, uclGames, laligaGames] = await Promise.all([
+    parseESPNCollegeBasketball(cbbRaw, targetDate),
+    parseESPNHockey(nhlRaw, 'hockey', targetDate),
+    parseESPNHockey(ncaahRaw, 'college_hockey', targetDate),
+    parseESPNSoccer(fifaRaw, 'FIFA World Cup', targetDate),
+    parseESPNSoccer(mlsRaw, 'MLS', targetDate),
+    parseESPNSoccer(eplRaw, 'EPL', targetDate),
+    parseESPNSoccer(uclRaw, 'Champions League', targetDate),
+    parseESPNSoccer(laligaRaw, 'La Liga', targetDate),
+  ]);
 
   return [...nbaGames, ...mlbGames, ...cbbGames, ...nhlGames, ...ncaahGames, ...fifaGames, ...mlsGames, ...eplGames, ...uclGames, ...laligaGames, ...milbGames];
 }
